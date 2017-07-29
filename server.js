@@ -2,6 +2,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const exphbs = require('express-handlebars');
+const Users = require('./models/users');
 const app = express();
 
 let PORT = process.env.PORT || 9000;
@@ -18,6 +19,7 @@ app.post('/users', function (req, res) {
 });
 
 app.get('/users', function(req, res) {
+  console.log(Users);
   Users.findAll()
   .then(function (users) {
     res.json(users);

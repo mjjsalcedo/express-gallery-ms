@@ -1,12 +1,20 @@
+/*jshint esversion:6*/
+const Sequelize = require('sequelize');
+const Users = require('./users');
+
 module.exports = function(sequelize, DataTypes) {
   var Photo = sequelize.define("Photos", {
-    author_id: { type: Sequelize.INTEGER, references: {model: Users, key: 'id'}, deferrable: Sequelize.Deferrable.INITIALLY_IMMEDIATE},
-    link: {type: Sequelize.STRING, allowNull: false},
-    description: {type: Sequelize.STRING, allowNull: false}
+    link: { type: DataTypes.STRING, allowNull: false },
+    description: { type: DataTypes.STRING, allowNull: false }
   }, {
     classMethods: {
       associate: function(models) {
-        Photo.belongsTo(Users);
+        Photo.belongsTo(models.Users,  {
+          onDelete: "CASCADE",
+          foreignKey: {
+            allowNull: false
+          }
+        });
       }
     }
   });
