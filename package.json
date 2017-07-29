@@ -19,14 +19,16 @@
   "homepage": "https://github.com/liznomura/express-gallery#readme",
   "dependencies": {
     "body-parser": "^1.17.2",
-    "browser-sync": "^2.18.13",
     "express": "^4.15.3",
+    "express-handlebars": "^3.0.0",
     "gulp-sass": "^3.1.0",
+    "handlebars": "^4.0.10",
     "pg": "^7.0.2",
     "pg-hstore": "^2.3.2",
     "sequelize": "^4.4.2"
   },
   "devDependencies": {
+    "browser-sync": "^2.18.13",
     "gulp": "^3.9.1"
   }
 }
