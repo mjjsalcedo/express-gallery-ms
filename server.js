@@ -6,6 +6,8 @@ const app = express();
 
 let PORT = process.env.PORT || 9000;
 
+let db = require('./models');
+
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.listen(PORT, () => {
