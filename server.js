@@ -10,6 +10,20 @@ let db = require('./models');
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+app.post('/users', function (req, res) {
+  Users.create({ username: req.body.username })
+  .then(function (user) {
+    res.json(user);
+  });
+});
+
+app.get('/users', function(req, res) {
+  Users.findAll()
+  .then(function (users) {
+    res.json(users);
+  });
+});
+
 app.listen(PORT, () => {
   db.sequelize.sync();
   console.log(`Server running on ${PORT}`);
