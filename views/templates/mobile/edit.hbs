@@ -1,0 +1,16 @@
+<h1>Update Photo Request</h1>
+
+<form method="GET" action="/">
+  <button>HOME</button>
+</form>
+ {{#each photoGallery}}
+<form method = 'POST' action="/gallery" enctype= 'application/x-www-form-urlencoded'>
+  Name:
+  <input type="text" name='link' value= '{{link}}'>
+  Price:
+  <input type="text" name='author_id' value= '{{author_id}}'>
+  Inventory:
+  <input type="text" name='description' value= '{{description}}'>
+<button type= 'submit'> UPDATE PHOTO </button>
+</form>
+ {{/each}}
