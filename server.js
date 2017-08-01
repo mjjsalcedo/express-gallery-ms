@@ -25,6 +25,18 @@ function findAuthor( req, res ) {
   });
 }
 
+function findPhoto( req, res ) {
+  let photoId = req.params.id;
+  return Photos.find({ where: { id: photoId } })
+  .then( photo => {
+    if(photo) {
+      return photo;
+    } else {
+      return;
+    }
+  });
+}
+
 app.post('/gallery', (req, res) => {
   findAuthor(req, res)
   .then( author => {
@@ -78,6 +90,17 @@ app.put('/gallery/:id', (req, res) => {
   .catch(err => {
     console.log(err);
   });
+});
+
+app.delete('/gallery/:id', (req, res) => {
+  findPhoto(req, res)
+  .then( photo => {
+    Photos.destroy({ where: {id: photo.id} });
+  })
+  .catch( err => {
+    console.log(err);
+  });
+
 });
 
 app.listen(PORT, () => {
