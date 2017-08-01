@@ -20,6 +20,7 @@ app.post('/gallery', (req, res) => {
 });
 
 app.get('/gallery/:id', (req, res) => {
+  console.log('req', req.params.id);
   let photoId = req.params.id;
   Users.findById(photoId)
   .then( users =>  {
@@ -42,11 +43,9 @@ app.get('/', (req, res) =>{
   });
 });
 
-
-// app.put('/:id')
-
 app.listen(PORT, () => {
-  /*  db.sequelize.drop();*/
-  db.sequelize.sync({ force: true });
+/*  db.sequelize.drop();*/
+  db.sequelize.sync();
+
   console.log(`Server running on ${PORT}`);
 });
