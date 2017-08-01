@@ -59,6 +59,20 @@ app.get('/', (req, res) =>{
   });
 });
 
+app.put('/gallery/:id', (req, res) => {
+  let photoId = req.params.id;
+  Photos.update(
+  {
+    author: req.body.author, //ask someone if the user = author? if user = author, disable changes
+    link: req.body.link,
+    description: req.body.description
+  },
+  { where: { id: photoId } })
+  .catch(err => {
+    console.log(err);
+  });
+});
+
 app.listen(PORT, () => {
 /*  db.sequelize.drop();*/
   db.sequelize.sync();
