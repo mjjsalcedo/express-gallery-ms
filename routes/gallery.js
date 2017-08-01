@@ -21,14 +21,7 @@ function findAuthor( req, res ) {
 
 function findPhoto( req, res ) {
   let photoId = req.params.id;
-  return Photos.findById(photoId)
-  .then( photo => {
-    if(photo) {
-      return photo;
-    } else {
-      return;
-    }
-  });
+  return Photos.findById(photoId);
 }
 
 router.post('/gallery', (req, res) => {
@@ -46,16 +39,14 @@ router.post('/gallery', (req, res) => {
 });
 
 router.get('/gallery/:id', (req, res) => {
-  let photoId = req.params.id;
-  Photos.findById(photoId)
+  findPhoto(req, res)
   .then( photo =>  {
     res.json(photo);
   });
 });
 
 router.get('/gallery/:id/edit', (req, res) =>{
-  let photoId = req.params.id;
-  Photos.findById(photoId)
+  findPhoto(req, res)
   .then( photo =>  {
     res.render(photo);
   });
@@ -86,8 +77,8 @@ router.put('/gallery/:id', (req, res) => {
 });
 
 router.delete('/gallery/:id', (req, res) => {
-    let photoId = req.params.id;
-    Photos.destroy({ where: {id: photoId} })
+  let photoId = req.params.id;
+  Photos.destroy({ where: {id: photoId} })
   .catch( err => {
     console.log(err);
   });
