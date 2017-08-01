@@ -14,14 +14,21 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.static('public'));
 
-app.post('/gallery', function (req, res) {
-  Users.create({ username: req.body.username })
+/*app.post('/gallery', (req, res) => {
+  Users.findOrCreatecreate({where: {
+    author: req.body.author
+  }
+  })
+  Photos.create({
+    link: req.body.link,
+    description: req.body.description
+  })
   .then(function (user) {
     res.json(user);
   });
 });
-
-app.get('/gallery/:id', function(req, res) {
+*/
+app.get('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
   Users.findById(photoId)
   .then(function (users) {
@@ -29,7 +36,7 @@ app.get('/gallery/:id', function(req, res) {
   });
 });
 
-app.get('/gallery/:id/edit', function(req, res) {
+app.get('/gallery/:id/edit', (req, res) =>{
   let photoId = req.params.id;
   Users.findById(photoId)
   .then(function (users) {
@@ -37,7 +44,7 @@ app.get('/gallery/:id/edit', function(req, res) {
   });
 });
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) =>{
   Users.findAll()
   .then(function (users) {
     res.json(users);
@@ -48,6 +55,7 @@ app.get('/', function(req, res) {
 // app.put('/:id')
 
 app.listen(PORT, () => {
+/*  db.sequelize.drop();*/
   db.sequelize.sync();
   console.log(`Server running on ${PORT}`);
 });
