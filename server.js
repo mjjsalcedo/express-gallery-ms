@@ -11,15 +11,16 @@ let Users = db.Users;
 let Photos = db.Photos;
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use('/gallery', express.static('public'));
 
-app.post('/gallery', function (req, res) {
+app.post('/', function (req, res) {
   Users.create({ username: req.body.username })
   .then(function (user) {
     res.json(user);
   });
 });
 
-app.get('/gallery/:id', function(req, res) {
+app.get('/:id', function(req, res) {
   let photoId = req.params.id;
   Users.findById(photoId)
   .then(function (users) {
@@ -27,7 +28,7 @@ app.get('/gallery/:id', function(req, res) {
   });
 });
 
-app.get('/gallery/:id/edit', function(req, res) {
+app.get('/:id/edit', function(req, res) {
   let photoId = req.params.id;
   Users.findById(photoId)
   .then(function (users) {
@@ -42,6 +43,9 @@ app.get('/gallery/:id/edit', function(req, res) {
   });
 });
 */
+
+// app.put('/')
+
 app.listen(PORT, () => {
   db.sequelize.sync();
   console.log(`Server running on ${PORT}`);
