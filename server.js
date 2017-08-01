@@ -12,8 +12,8 @@ let Photos = db.photos;
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.post('/gallery', (req, res) => {
-  Users.find({ where: { author: req.body.author } })
+function findAuthor( req, res ) {
+  return Users.find({ where: { author: req.body.author } })
   .then( author => {
     if(author){
       return author;
@@ -22,13 +22,17 @@ app.post('/gallery', (req, res) => {
         {author: req.body.author}
         );
     }
-  })
+  });
+}
+
+app.post('/gallery', (req, res) => {
+  findAuthor(req, res)
   .then( author => {
-      Photos.create(
-        { author_id: JSON.stringify(author.id),
-          link: req.body.link,
-          description: req.body.description }
-    );
+    Photos.create(
+      { author_id: author.id,
+        link: req.body.link,
+        description: req.body.description }
+        );
   })
   .catch( err => {
     console.log(err);
@@ -59,8 +63,25 @@ app.get('/', (req, res) =>{
   });
 });
 
+app.put('/gallery/:id', (req, res) => {
+  let photoId = req.params.id;
+  findAuthor(req, res)
+  .then( author => {
+    Photos.update(
+    {
+      author_id: author.id,
+      link: req.body.link,
+      description: req.body.description
+    },
+    { where: { id: photoId } });
+  })
+  .catch(err => {
+    console.log(err);
+  });
+});
+
 app.listen(PORT, () => {
-/*  db.sequelize.drop();*/
+  /*  db.sequelize.drop();*/
   db.sequelize.sync();
 
   console.log(`Server running on ${PORT}`);
