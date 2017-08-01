@@ -2,14 +2,13 @@
 
 <div class="gallery">
   <div class="btn">
-    <button type="button" onclick="location.href='./products/new'">Upload a Photo</button>
+    <button type="button" onclick="location.href='./templates/desktop/new'">Upload a Photo</button>
     {{#if photos}}
     {{#each photos}}
     <div class="photo">
-      <p>ID#: {{id}}</p>
-      <p>Name: {{name}}</p>
-      <p>Price: {{price}}</p>
-      <p>Total Inventory: {{inventory}}</p>
+      <img src='{{link}}' alt='img'>
+      <p>Author: {{user.author}}</p>
+      <p>Description: {{description}}</p>
     </div>
     <div class="deleteBtn">
       <form action="/gallery/{{id}}?_method=DELETE" method="POST">
