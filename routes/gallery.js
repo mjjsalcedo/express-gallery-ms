@@ -38,6 +38,10 @@ router.post('/gallery', (req, res) => {
   });
 });
 
+router.get('/gallery/new', ( req, res ) => {
+  res.render('./templates/desktop/new');
+});
+
 router.get('/gallery/:id', (req, res) => {
   findPhoto(req, res)
   .then( photo =>  {
