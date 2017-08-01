@@ -25,6 +25,7 @@
     "handlebars": "^4.0.10",
     "pg": "^7.0.2",
     "pg-hstore": "^2.3.2",
+    "pg-promise": "^6.3.6",
     "sequelize": "^4.4.2"
   },
   "devDependencies": {
