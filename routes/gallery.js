@@ -39,7 +39,7 @@ router.post('/gallery', (req, res) => {
 });
 
 router.get('/gallery/new', ( req, res ) => {
-  res.render('./templates/desktop/new');
+  res.render('./templates/new');
 });
 
 router.get('/gallery/:id', (req, res) => {
@@ -52,7 +52,7 @@ router.get('/gallery/:id', (req, res) => {
 router.get('/gallery/:id/edit', (req, res) =>{
   findPhoto(req, res)
   .then( photo =>  {
-    res.render(photo);
+    res.render('./templates/edit');
   });
 });
 
@@ -62,7 +62,7 @@ router.get('', (req, res) =>{
     let photosObj = {
       photos: photos
     };
-    res.render('./templates/desktop/index', photosObj);
+    res.render('./templates/index', photosObj);
   });
 });
 
