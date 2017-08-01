@@ -53,9 +53,12 @@ router.get('/gallery/:id/edit', (req, res) =>{
 });
 
 router.get('', (req, res) =>{
-  Photos.findAll()
-  .then( photos =>  {
-    res.json(photos);
+  Photos.findAll({ include: { model: Users } })
+  .then( photos => {
+    let photosObj = {
+      photos: photos
+    };
+    res.render('./templates/desktop/index', photosObj);
   });
 });
 
