@@ -13,32 +13,48 @@ let Photos = db.photos;
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.post('/gallery', (req, res) => {
-  Users.findAll()
-  .then( user => {
-    res.json(user);
+  Users.find({ where: { author: req.body.author } })
+  .then( author => {
+    if(author){
+      return author;
+    } else {
+      return Users.create(
+        {author: req.body.author}
+        );
+    }
+  })
+  .then( author => {
+      Photos.create(
+        { author_id: JSON.stringify(author.id),
+          link: req.body.link,
+          description: req.body.description }
+    );
+  })
+  .catch( err => {
+    console.log(err);
   });
 });
 
 app.get('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
-  Users.findById(photoId)
-  .then( users =>  {
-    res.json(users);
+  Photos.findById(photoId)
+  .then( photo =>  {
+    res.json(photo);
   });
 });
 
 app.get('/gallery/:id/edit', (req, res) =>{
   let photoId = req.params.id;
-  Users.findById(photoId)
-  .then( users =>  {
-    res.render(users);
+  Photos.findById(photoId)
+  .then( photo =>  {
+    res.render(photo);
   });
 });
 
 app.get('/', (req, res) =>{
   Photos.findAll()
-  .then( users =>  {
-    res.json(users);
+  .then( photos =>  {
+    res.json(photos);
   });
 });
 
