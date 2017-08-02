@@ -43,9 +43,26 @@ router.get('/gallery/new', ( req, res ) => {
 });
 
 router.get('/gallery/:id', (req, res) => {
-  findPhoto(req, res)
-  .then( photo =>  {
-    res.json(photo);
+  let photoId = req.params.id;
+  Photos.findAll({ include: { model: Users } })
+  .then( photos => {
+    let mainPhoto = photos.filter((photo)=> {
+      if(photo.id == photoId){
+        return photo;
+      }
+    });
+
+    let otherPhotos = photos.filter((photo)=> {
+      if(photo.id != photoId){
+        return photo;
+      }
+    });
+
+    let photosObj = {
+      photo: mainPhoto,
+      photos: otherPhotos
+    };
+    res.render('./templates/photo', photosObj);
   });
 });
 
