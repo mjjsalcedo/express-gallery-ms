@@ -1,0 +1,9 @@
+<h1>Edit Photo</h1>
+<div class="edit">
+<form action="/gallery/{{dataValues.author_id}}?_method=PUT" method="POST">
+  <p><label>Author: <input type="text" name="author" value="{{user.author}}"></label></p>
+  <p><label>Photo URL: <input type="text" name="link" value="{{dataValues.link}}"></label></p>
+  <p><label>Description: <input type="text" name="description" value="{{dataValues.description}}"></label></p>
+  <button type="submit">Submit Changes</button>
+  </form>
+</div>

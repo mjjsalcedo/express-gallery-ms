@@ -21,7 +21,10 @@ function findAuthor( req, res ) {
 
 function findPhoto( req, res ) {
   let photoId = req.params.id;
-  return Photos.findById(photoId);
+  return Photos.findOne({
+      where: {id: photoId },
+      include: {model: Users}
+    });
 }
 
 router.post('/gallery', (req, res) => {
@@ -32,7 +35,8 @@ router.post('/gallery', (req, res) => {
         link: req.body.link,
         description: req.body.description }
         );
-  })
+  });
+  res.redirect('/')
   .catch( err => {
     console.log(err);
   });
@@ -52,7 +56,13 @@ router.get('/gallery/:id', (req, res) => {
 router.get('/gallery/:id/edit', (req, res) =>{
   findPhoto(req, res)
   .then( photo =>  {
-    res.render('./templates/edit');
+    console.log(photo);
+    let photoObj = {
+      author_id: photo.author_id,
+      link: photo.link
+    };
+    console.log(photoObj);
+    res.render('./templates/edit', photo);
   });
 });
 
@@ -77,7 +87,8 @@ router.put('/gallery/:id', (req, res) => {
       description: req.body.description
     },
     { where: { id: photoId } });
-  })
+  });
+  res.redirect(`/gallery/${req.params.id}`)
   .catch(err => {
     console.log(err);
   });
@@ -85,7 +96,8 @@ router.put('/gallery/:id', (req, res) => {
 
 router.delete('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
-  Photos.destroy({ where: {id: photoId} })
+  Photos.destroy({ where: {id: photoId} });
+  res.redirect('/')
   .catch( err => {
     console.log(err);
   });

@@ -17,10 +17,9 @@
       </form>
     </div>
     <div class="editBtn">
-      <form action="/gallery/{{id}}/edit" method="GET">
-        <input type="hidden" name="id" value={{id}}>
-        <button type="submit">Edit</button>
-      </form>
+      <a href="/gallery/{{id}}/edit">
+        <button type="button">Edit</button>
+      </a>
     </div>
     {{/each}}
     {{else}}
