@@ -1,6 +1,6 @@
 /*jshint esversion:6*/
-const Sequelize = require('sequelize');
-const Users = require('./users');
+/*const Sequelize = require('sequelize');
+const Users = require('./users');*/
 
 module.exports = function(sequelize, DataTypes) {
   var Photo = sequelize.define("photos", {
@@ -11,6 +11,12 @@ module.exports = function(sequelize, DataTypes) {
 
   Photo.associate = function(models) {
     Photo.belongsTo(models.users,  {
+      foreignKey: {
+        name: 'user_id',
+        allowNull: false
+      }
+    });
+    Photo.belongsTo(models.authors,  {
       foreignKey: {
         name: 'author_id',
         allowNull: false
