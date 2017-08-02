@@ -1,0 +1,39 @@
+<h1>Some Header</h1>
+
+<div class="gallery">
+  <div class="btn">
+    <button type="button" onclick="location.href='./gallery/new'">Upload a Photo</button>
+    {{#if photo}}
+    {{#each photo}}
+    <div class="photo">
+      <img src='{{link}}' alt='img'>
+      <p>Author: {{user.author}}</p>
+      <p>Description: {{description}}</p>
+    </div>
+    <div class="deleteBtn">
+      <form action="/gallery/{{id}}?_method=DELETE" method="POST">
+        <input type="hidden" name="id" value={{id}}>
+        <button type="submit">Remove</button>
+      </form>
+    </div>
+    <div class="editBtn">
+      <form action="/gallery/{{id}}/edit" method="GET">
+        <input type="hidden" name="id" value={{id}}>
+        <button type="submit">Edit</button>
+      </form>
+    </div>
+    {{/each}}
+    {{else}}
+    <p>No photos to display</p>
+    {{/if}}
+    {{#if photos}}
+    {{#each photos}}
+    <div class="photo">
+      <img src='{{link}}' alt='img'>
+      <p>Author: {{user.author}}</p>
+    </div>
+    {{/each}}
+    {{else}}
+    <p>No photos to display</p>
+    {{/if}}
+  </div>
