@@ -9,6 +9,7 @@ const router = express.Router();
 
 let db = require('../models');
 let Users = db.users;
+let Authors = db.authors;
 let Photos = db.photos;
 
 
@@ -29,21 +30,32 @@ passport.serializeUser((user, cb)=> {
 
 
 passport.deserializeUser((userId, cb)=> {
-  Users.findById(userId, cb);
+  Users.findById(userId, cb).then(user => {
+    if (user) {
+      return cb(null, user);
+    }
+    return cb(null);
+  }).catch(err=>{
+    if(err){
+      return done(err);
+    }
+  });
 });
 
 
 passport.use(new LocalStrategy((username,password, done)=>{
-  console.log('username', username);
-  Users.findAuthor({username:username}, (err, user)=> {
-    if(err) {return done(err);}
+  Users.findOne({where: {username:username}}).then((user)=> {
     if(!user){
-      return done(null, false, {message: 'username does not exist'});
+      return done(null, false);
     }
     if(user.password !== password){
-      return done(null, false, {message: 'incorrect password'});
+      return done(null, false);
     }
     return done(null, user);
+  }).catch(err => {
+    if (err){
+      return done(err);
+    }
   });
 }));
 
@@ -58,9 +70,28 @@ router.get('/', (req, res) =>{
   });
 });
 
+router.get('/login', (req, res)=> {
+  res.render('./templates/login');
+});
+
+router.get('/success', (req, res)=> {
+  res.render('./templates/success');
+});
+
+router.post('/login', passport.authenticate('local',{
+  successRedirect: '/success',
+  failureRedirect: '/login'
+}));
+
+
 
 router.get('/gallery/new', ( req, res ) => {
   res.render('./templates/new');
+});
+
+
+router.get('/success', isAuthenticated, (req, res) =>{
+  res.render('./templates/success', photosObj);
 });
 
 
@@ -88,7 +119,7 @@ router.get('/gallery/:id', (req, res) => {
   });
 });
 
-router.get('/gallery/:id/edit', (req, res) =>{
+router.get('/gallery/:id/edit', isAuthenticated, (req, res) =>{
   findPhoto(req, res)
   .then( photo =>  {
     let photoObj = {
@@ -101,13 +132,14 @@ router.get('/gallery/:id/edit', (req, res) =>{
 });
 
 
-router.post('/gallery', (req, res) => {
+router.post('/gallery', isAuthenticated, (req, res) => {
   findAuthor(req, res)
   .then( author => {
     Photos.create(
       { author_id: author.id,
+        user_id: req.user.id,
         link: req.body.link,
-        description: req.body.description }
+        description: req.body.description}
         );
   });
   res.redirect('/')
@@ -122,14 +154,13 @@ router.put('/gallery/:id', isAuthenticated, (req, res) => {
   findAuthor(req, res)
   .then( author => {
     Photos.update(
-    {
-      author_id: author.id,
+    { author_id: author.id,
+      user_id: req.user.id,
       link: req.body.link,
       description: req.body.description
     },
     { where: { id: photoId } });
   });
-  console.log('herro');
   res.redirect(`/gallery/${req.params.id}`)
   .catch(err => {
     console.log(err);
@@ -149,21 +180,13 @@ router.delete('/gallery/:id', isAuthenticated, (req, res) => {
 
 module.exports = router;
 
-function findById(id, cb) {
-  let user = users.find(user => id === user.id);
-  if (user) {
-    return cb(null, user);
-  }
-  return cb(null);
-}
-
 function findAuthor( req, res ) {
-  return Users.find({ where: { author: req.body.author } })
+  return Authors.find({ where: { author: req.body.author } })
   .then( author => {
     if(author){
       return author;
     } else {
-      return Users.create(
+      return Authors.create(
         {author: req.body.author}
         );
     }
@@ -173,9 +196,9 @@ function findAuthor( req, res ) {
 function findPhoto( req, res ) {
   let photoId = req.params.id;
   return Photos.findOne({
-      where: {id: photoId },
-      include: {model: Users}
-    });
+    where: {id: photoId },
+    include: {model: Users}
+  });
 }
 
 
@@ -183,10 +206,10 @@ function isAuthenticated(req, res, next){
   if(req.isAuthenticated()){
     return next();
   }
-  res.redirect('/index.html');
+  res.redirect('/');
 }
 
-
+/*
 function hasAdminAccess(req, res, next){
   if(req.isAuthenticated()){
     if(req.user.role === 'admin'){
@@ -195,4 +218,4 @@ function hasAdminAccess(req, res, next){
     return res.redirect('/secret');
   }
   res.redirect('/login.html');
-}
+}*/

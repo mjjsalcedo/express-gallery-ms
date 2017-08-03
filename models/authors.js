@@ -1,16 +1,15 @@
 module.exports = function(sequelize, DataTypes) {
-  var Users = sequelize.define("users", {
-    username: DataTypes.STRING,
-    password: DataTypes.STRING
+  var Authors = sequelize.define("authors", {
+    author: DataTypes.STRING
   },
   {timestamps: false},
   {
     classMethods: {
       associate: function(models) {
-        Users.hasMany(models.photos);
+        Authors.hasMany(models.photos);
       }
     }
   });
 
-  return Users;
+  return Authors;
 };
