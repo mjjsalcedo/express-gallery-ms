@@ -26,7 +26,7 @@ let Users = db.users;
 let Photos = db.photos;
 
 app.listen(PORT, () => {
-  /*  db.sequelize.drop();*/
+    /*db.sequelize.drop();*/
   db.sequelize.sync();
 
   console.log(`Server running on ${PORT}`);
