@@ -1,11 +1,15 @@
 <div class="gallery">
   <div class="btn">
+    <button type="button" onclick="
+    location.href='./login'">Login</button>
+    <button type="button" onclick="location.href='./register'">Register</button>
+    <button type="button" onclick="location.href='./logout'">Logout</button>
     <button type="button" onclick="location.href='./gallery/new'">Upload a Photo</button>
     {{#if photos}}
     {{#each photos}}
     <div class="photo">
       <img src='{{link}}' alt='img'>
-      <p>Author: {{user.author}}</p>
+      <p>Author: {{author}}</p>
       <p>Description: {{description}}</p>
     </div>
     <div class="deleteBtn">

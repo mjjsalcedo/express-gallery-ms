@@ -4,26 +4,32 @@ const bodyParser = require('body-parser');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
+const methodOverride = require('method-override');
 
-const router = express.Router();
+const RedisStore = require('connect-redis')(session);
+const saltRounds = 10;
+const bcrypt = require('bcrypt');
 
+const app = express.Router();
 let db = require('../models');
 let Users = db.users;
 let Authors = db.authors;
 let Photos = db.photos;
 
 
-router.use(express.static('public'));
-router.use(bodyParser.urlencoded({extended:true}));
-router.use(session({
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(methodOverride('_method'));
+app.use(session({
+  store: new RedisStore(),
   secret: 'keyboard cat',
   resave: false,
   saveUninitialized: false
 }));
-router.use(passport.initialize());
 
+app.use(passport.initialize());
+app.use(passport.session());
 
-router.use(passport.session());
 passport.serializeUser((user, cb)=> {
   cb(null, user.id);
 });
@@ -37,30 +43,34 @@ passport.deserializeUser((userId, cb)=> {
     return cb(null);
   }).catch(err=>{
     if(err){
-      return done(err);
+      return cb(err);
     }
   });
 });
 
 
 passport.use(new LocalStrategy((username,password, done)=>{
-  Users.findOne({where: {username:username}}).then((user)=> {
-    if(!user){
-      return done(null, false);
+  Users.findOne({where: {username:username}}).then ( user => {
+    if (user === null) {
+      return done(null, false, {message: 'bad username or password'});
     }
-    if(user.password !== password){
-      return done(null, false);
+    else {
+      bcrypt.compare(password, user.password)
+      .then(res => {
+        if (res) { return done(null, user); }
+        else {
+          return done(null, false, {message: 'bad username or password'});
+        }
+      });
     }
-    return done(null, user);
-  }).catch(err => {
-    if (err){
-      return done(err);
-    }
+  })
+  .catch(err => {
+    console.log('error: ', err);
   });
-}));
+}
+));
 
-
-router.get('/', (req, res) =>{
+app.get('/', (req, res) =>{
   Photos.findAll({ include: { model: Users } })
   .then( photos => {
     let photosObj = {
@@ -70,40 +80,71 @@ router.get('/', (req, res) =>{
   });
 });
 
-router.get('/login', (req, res)=> {
+app.get('/login', (req, res)=> {
   res.render('./templates/login');
 });
 
-router.get('/success', (req, res)=> {
-  res.render('./templates/success');
+app.get('/register', (req, res)=> {
+  res.render('./templates/register');
 });
 
-router.post('/login', passport.authenticate('local',{
+app.post('/login', passport.authenticate('local',{
   successRedirect: '/success',
   failureRedirect: '/login'
 }));
 
+app.post('/register',(req, res)=>{
+  let {username, password} = req.body;
+  bcrypt.genSalt(saltRounds, (err, salt)=>{
+    bcrypt.hash(req.body.password, salt, (err, hash)=>{
+      Users.create({
+        username: req.body.username,
+        password: hash
+      }).then ((user)=> {
+        res.redirect('/login');
+      }).catch((err)=> {
+        return res.send('Stupid username yo');
+      });
+    });
+  });
+});
+
+app.get('/success', (req, res)=> {
+  res.render('./templates/success');
+});
+
+app.get('/logout', (req, res)=>{
+  req.logout();
+  res.render('./templates/logout');
+});
 
 
-router.get('/gallery/new', ( req, res ) => {
+app.get('/gallery/new', ( req, res ) => {
   res.render('./templates/new');
 });
 
 
-router.get('/success', isAuthenticated, (req, res) =>{
+app.get('/success', isAuthenticated, (req, res) =>{
   res.render('./templates/success', photosObj);
 });
 
 
-router.get('/gallery/:id', (req, res) => {
+app.get('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
-  Photos.findAll({ include: { model: Users } })
+  Photos.findAll({ include: [{ model: Users },{ model:Authors } ] })
   .then( photos => {
     let mainPhoto = photos.filter((photo)=> {
       if(photo.id == photoId){
         return photo;
       }
     });
+
+    let revisedMainPhoto = {
+      id: mainPhoto[0].id,
+      link:mainPhoto[0].link,
+      author: mainPhoto[0].author.author,
+      description: mainPhoto[0].description,
+    };
 
     let otherPhotos = photos.filter((photo)=> {
       if(photo.id != photoId){
@@ -112,27 +153,29 @@ router.get('/gallery/:id', (req, res) => {
     });
 
     let photosObj = {
-      photo: mainPhoto,
+      photo: revisedMainPhoto,
       photos: otherPhotos
     };
+
     res.render('./templates/photo', photosObj);
   });
 });
 
-router.get('/gallery/:id/edit', isAuthenticated, (req, res) =>{
+app.get('/gallery/:id/edit', (req, res) =>{
   findPhoto(req, res)
   .then( photo =>  {
     let photoObj = {
-      author_id: photo.author_id,
-      link: photo.link
+      author_id: photo.id,
+      link: photo.link,
+      description: photo.description,
     };
     console.log(photoObj);
-    res.render('./templates/edit', photo);
+    res.render('./templates/edit', photoObj);
   });
 });
 
 
-router.post('/gallery', isAuthenticated, (req, res) => {
+app.post('/gallery', isAuthenticated, (req, res) => {
   findAuthor(req, res)
   .then( author => {
     Photos.create(
@@ -141,44 +184,60 @@ router.post('/gallery', isAuthenticated, (req, res) => {
         link: req.body.link,
         description: req.body.description}
         );
-  });
-  res.redirect('/')
+  }).then(()=> {
+    res.redirect('/');
+  })
   .catch( err => {
     console.log(err);
   });
 });
 
 
-router.put('/gallery/:id', isAuthenticated, (req, res) => {
+app.put('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
   findAuthor(req, res)
   .then( author => {
-    Photos.update(
-    { author_id: author.id,
-      user_id: req.user.id,
-      link: req.body.link,
-      description: req.body.description
-    },
-    { where: { id: photoId } });
-  });
-  res.redirect(`/gallery/${req.params.id}`)
-  .catch(err => {
-    console.log(err);
+
+      Photos.findById(photoId , {include: [{model:Users}]}).then(photo => {
+       if(req.user.id === photo.user_id){
+        console.log('photo', photo.user_id);
+        console.log('user id', req.user.id);
+         photo.update(
+          { author_id: author.id,
+            link: req.body.link,
+            description: req.body.description
+          }
+          );
+        }
+      }).then(()=>{
+      res.redirect('/');
+    })
+    .catch(err => {
+      console.log(err);
+    });
   });
 });
 
 
-router.delete('/gallery/:id', isAuthenticated, (req, res) => {
+app.delete('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
-  Photos.destroy({ where: {id: photoId} });
-  res.redirect('/')
-  .catch( err => {
-    console.log(err);
+  findPhoto(req, res).then(photo=>{
+    if(req.user.id === photo.user_id){
+      Photos.destroy({ where: {id: photoId} }).then(()=> {
+        res.redirect('/');
+      });
+    }
   });
-
 });
 
-module.exports = router;
+module.exports = app;
+
+function isAuthenticated(req, res, next){
+  if(req.isAuthenticated()){
+    return next();
+  }
+  res.redirect('/');
+}
 
 function findAuthor( req, res ) {
   return Authors.find({ where: { author: req.body.author } })
@@ -202,20 +261,3 @@ function findPhoto( req, res ) {
 }
 
 
-function isAuthenticated(req, res, next){
-  if(req.isAuthenticated()){
-    return next();
-  }
-  res.redirect('/');
-}
-
-/*
-function hasAdminAccess(req, res, next){
-  if(req.isAuthenticated()){
-    if(req.user.role === 'admin'){
-      return next();
-    }
-    return res.redirect('/secret');
-  }
-  res.redirect('/login.html');
-}*/
