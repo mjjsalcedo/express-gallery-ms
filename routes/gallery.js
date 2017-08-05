@@ -71,8 +71,9 @@ passport.use(new LocalStrategy((username,password, done)=>{
 ));
 
 app.get('/', (req, res) =>{
-  Photos.findAll({ include: { model: Users } })
+  Photos.findAll({ include: [{ model: Users }, {model: Authors}]})
   .then( photos => {
+    console.log('photos', photos);
     let photosObj = {
       photos: photos
     };
