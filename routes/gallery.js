@@ -1,79 +1,17 @@
 /* jshint esversion:6 */
 const express = require('express');
-const bodyParser = require('body-parser');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
-const methodOverride = require('method-override');
-
-const RedisStore = require('connect-redis')(session);
-const saltRounds = 10;
-const bcrypt = require('bcrypt');
-
 const app = express.Router();
+
 let db = require('../models');
 let Users = db.users;
 let Authors = db.authors;
 let Photos = db.photos;
 
-
-app.use(express.static('public'));
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(methodOverride('_method'));
-app.use(session({
-  store: new RedisStore(),
-  secret: 'keyboard cat',
-  resave: false,
-  saveUninitialized: false
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-passport.serializeUser((user, cb)=> {
-  cb(null, user.id);
-});
-
-
-passport.deserializeUser((userId, cb)=> {
-  Users.findById(userId, cb).then(user => {
-    if (user) {
-      return cb(null, user);
-    }
-    return cb(null);
-  }).catch(err=>{
-    if(err){
-      return cb(err);
-    }
-  });
-});
-
-
-passport.use(new LocalStrategy((username,password, done)=>{
-  Users.findOne({where: {username:username}}).then ( user => {
-    if (user === null) {
-      return done(null, false, {message: 'bad username or password'});
-    }
-    else {
-      bcrypt.compare(password, user.password)
-      .then(res => {
-        if (res) { return done(null, user); }
-        else {
-          return done(null, false, {message: 'bad username or password'});
-        }
-      });
-    }
-  })
-  .catch(err => {
-    console.log('error: ', err);
-  });
-}
-));
-
 app.get('/', (req, res) =>{
+  console.log('booooooooooooooooop', req.user);
   Photos.findAll({ include: [{ model: Users }, {model: Authors}]})
   .then( photos => {
-    console.log('photos', photos);
     let photosObj = {
       photos: photos
     };
@@ -95,8 +33,10 @@ app.post('/login', passport.authenticate('local',{
 }));
 
 app.post('/register',(req, res)=>{
+
   let {username, password} = req.body;
   bcrypt.genSalt(saltRounds, (err, salt)=>{
+
     bcrypt.hash(req.body.password, salt, (err, hash)=>{
       Users.create({
         username: req.body.username,
@@ -119,16 +59,13 @@ app.get('/logout', (req, res)=>{
   res.render('./templates/logout');
 });
 
-
 app.get('/gallery/new', ( req, res ) => {
   res.render('./templates/new');
 });
 
-
 app.get('/success', isAuthenticated, (req, res) =>{
   res.render('./templates/success', photosObj);
 });
-
 
 app.get('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
@@ -175,10 +112,13 @@ app.get('/gallery/:id/edit', (req, res) =>{
   });
 });
 
-
-app.post('/gallery', isAuthenticated, (req, res) => {
-  findAuthor(req, res)
+app.post('/gallery', /*isAuthenticated,*/ (req, res) => {
+  console.log('hellooooooooooooooooooooo');
+  res.send('route here');
+  /*findAuthor(req, res)
   .then( author => {
+    console.log('hello');
+console.log('bye');
     Photos.create(
       { author_id: author.id,
         user_id: req.user.id,
@@ -190,9 +130,8 @@ app.post('/gallery', isAuthenticated, (req, res) => {
   })
   .catch( err => {
     console.log(err);
-  });
+  });*/
 });
-
 
 app.put('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
@@ -201,8 +140,6 @@ app.put('/gallery/:id', isAuthenticated, (req, res) => {
 
       Photos.findById(photoId , {include: [{model:Users}]}).then(photo => {
        if(req.user.id === photo.user_id){
-        console.log('photo', photo.user_id);
-        console.log('user id', req.user.id);
          photo.update(
           { author_id: author.id,
             link: req.body.link,
@@ -218,7 +155,6 @@ app.put('/gallery/:id', isAuthenticated, (req, res) => {
     });
   });
 });
-
 
 app.delete('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
