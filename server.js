@@ -43,13 +43,11 @@ app.use(passport.session());
 app.use('/', galleryRouter);
 
 passport.serializeUser((user, cb)=> {
-  console.log('baaaaaaaaaaaaaaaaaaaa');
   cb(null, user.id);
 });
 
 
 passport.deserializeUser((userId, cb)=> {
-  console.log('moooooooooooooooooo');
   Users.findById(userId, cb).then(user => {
     if (user) {
       return cb(null, user);

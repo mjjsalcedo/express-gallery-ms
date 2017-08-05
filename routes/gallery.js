@@ -9,7 +9,6 @@ let Authors = db.authors;
 let Photos = db.photos;
 
 app.get('/', (req, res) =>{
-  console.log('booooooooooooooooop', req.user);
   Photos.findAll({ include: [{ model: Users }, {model: Authors}]})
   .then( photos => {
     let photosObj = {
@@ -36,7 +35,6 @@ app.post('/register',(req, res)=>{
 
   let {username, password} = req.body;
   bcrypt.genSalt(saltRounds, (err, salt)=>{
-
     bcrypt.hash(req.body.password, salt, (err, hash)=>{
       Users.create({
         username: req.body.username,
@@ -112,13 +110,10 @@ app.get('/gallery/:id/edit', (req, res) =>{
   });
 });
 
-app.post('/gallery', /*isAuthenticated,*/ (req, res) => {
-  console.log('hellooooooooooooooooooooo');
-  res.send('route here');
-  /*findAuthor(req, res)
+app.post('/gallery', isAuthenticated, (req, res) => {
+  findAuthor(req, res)
   .then( author => {
     console.log('hello');
-console.log('bye');
     Photos.create(
       { author_id: author.id,
         user_id: req.user.id,
@@ -130,14 +125,13 @@ console.log('bye');
   })
   .catch( err => {
     console.log(err);
-  });*/
+  });
 });
 
 app.put('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
   findAuthor(req, res)
   .then( author => {
-
       Photos.findById(photoId , {include: [{model:Users}]}).then(photo => {
        if(req.user.id === photo.user_id){
          photo.update(
@@ -158,9 +152,11 @@ app.put('/gallery/:id', isAuthenticated, (req, res) => {
 
 app.delete('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
-  findPhoto(req, res).then(photo=>{
+  findPhoto(req, res)
+  .then(photo=>{
     if(req.user.id === photo.user_id){
-      Photos.destroy({ where: {id: photoId} }).then(()=> {
+      Photos.destroy({ where: {id: photoId} })
+      .then(()=> {
         res.redirect('/');
       });
     }
