@@ -71,6 +71,8 @@ app.get('/gallery/new', ( req, res ) => {
 
 app.get('/gallery/:id', (req, res) => {
   let photoId = req.params.id;
+  let revisedMainPhoto = {};
+  let photosObj = {};
   Photos.findAll({ include: [{ model: Users },{ model:Authors } ] })
   .then( photos => {
     let mainPhoto = photos.filter((photo)=> {
@@ -79,7 +81,7 @@ app.get('/gallery/:id', (req, res) => {
       }
     });
 
-    let revisedMainPhoto = {
+    revisedMainPhoto = {
       id: mainPhoto[0].id,
       title: mainPhoto[0].title,
       link:mainPhoto[0].link,
@@ -87,17 +89,23 @@ app.get('/gallery/:id', (req, res) => {
       description: mainPhoto[0].description,
     };
 
-    let otherPhotos = photos.filter((photo)=> {
+    otherPhotos = photos.filter((photo)=> {
       if(photo.id != photoId){
         return photo;
       }
     });
 
+    return photoMetas().findOne({ photoId: mainPhoto[0].id });
+    })
+    .then(meta => {
+      delete meta._id;
+      delete meta.photoId;
+      revisedMainPhoto.meta = meta;
+
     let photosObj = {
       photo: revisedMainPhoto,
       photos: otherPhotos
     };
-
     res.render('./templates/photo', photosObj);
   });
 });

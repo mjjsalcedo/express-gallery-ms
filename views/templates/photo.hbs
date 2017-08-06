@@ -10,6 +10,13 @@
       <p>Author: {{photo.author}}</p>
       <p>Description: {{photo.description}}</p>
     </div>
+    <ul class="meta">
+            {{#each photo.meta}}
+              <li>
+                <b>{{@key}}</b> : {{ this }}
+              </li>
+            {{/each}}
+          </ul>
     <div class="deleteBtn">
       <form action="/gallery/{{photo.id}}?_method=DELETE" method="POST">
         <input type="hidden" name="id" value={{photo.id}}>
