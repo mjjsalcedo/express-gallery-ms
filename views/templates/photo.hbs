@@ -5,6 +5,7 @@
     <button type="button" onclick="location.href='./gallery/new'">Upload a Photo</button>
     {{#if photo}}
     <div class="mainphoto">
+      <p>Title: {{title}}</p>
       <img src='{{photo.link}}' alt='img'>
       <p>Author: {{photo.author}}</p>
       <p>Description: {{photo.description}}</p>
@@ -27,6 +28,7 @@
     {{#if photos}}
     {{#each photos}}
     <div class="photo">
+      <p>Title: {{title}}</p>
       <img src='{{link}}' alt='img'>
       <p>Author: {{author.author}}</p>
       <p>Description: {{description}}</p>

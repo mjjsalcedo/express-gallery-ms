@@ -1,6 +1,14 @@
 /* jshint esversion:6 */
 const express = require('express');
 const passport = require('passport');
+
+const session = require('express-session');
+var { photoMetas } = require('../collections');
+
+const RedisStore = require('connect-redis')(session);
+const saltRounds = 10;
+const bcrypt = require('bcrypt');
+
 const app = express.Router();
 
 let db = require('../models');
@@ -8,22 +16,21 @@ let Users = db.users;
 let Authors = db.authors;
 let Photos = db.photos;
 
-app.get('/', (req, res) =>{
-  Photos.findAll({ include: [{ model: Users }, {model: Authors}]})
-  .then( photos => {
-    let photosObj = {
-      photos: photos
-    };
-    res.render('./templates/index', photosObj);
-  });
-});
-
 app.get('/login', (req, res)=> {
   res.render('./templates/login');
 });
 
 app.get('/register', (req, res)=> {
   res.render('./templates/register');
+});
+
+app.get('/success', (req, res)=> {
+  res.render('./templates/success');
+});
+
+app.get('/logout', (req, res)=>{
+  req.logout();
+  res.render('./templates/logout');
 });
 
 app.post('/login', passport.authenticate('local',{
@@ -48,21 +55,18 @@ app.post('/register',(req, res)=>{
   });
 });
 
-app.get('/success', (req, res)=> {
-  res.render('./templates/success');
-});
-
-app.get('/logout', (req, res)=>{
-  req.logout();
-  res.render('./templates/logout');
+app.get('/', (req, res) =>{
+  Photos.findAll({ include: [{ model: Users }, {model: Authors}]})
+  .then( photos => {
+    let photosObj = {
+      photos: photos
+    };
+    res.render('./templates/index', photosObj);
+  });
 });
 
 app.get('/gallery/new', ( req, res ) => {
   res.render('./templates/new');
-});
-
-app.get('/success', isAuthenticated, (req, res) =>{
-  res.render('./templates/success', photosObj);
 });
 
 app.get('/gallery/:id', (req, res) => {
@@ -77,6 +81,7 @@ app.get('/gallery/:id', (req, res) => {
 
     let revisedMainPhoto = {
       id: mainPhoto[0].id,
+      title: mainPhoto[0].title,
       link:mainPhoto[0].link,
       author: mainPhoto[0].author.author,
       description: mainPhoto[0].description,
@@ -102,24 +107,28 @@ app.get('/gallery/:id/edit', (req, res) =>{
   .then( photo =>  {
     let photoObj = {
       author_id: photo.id,
+      title: photo.title,
       link: photo.link,
       description: photo.description,
     };
-    console.log(photoObj);
     res.render('./templates/edit', photoObj);
   });
 });
 
 app.post('/gallery', isAuthenticated, (req, res) => {
+  if( !req.body.meta ) req.body.meta = { meta : "is working" };
   findAuthor(req, res)
   .then( author => {
-    console.log('hello');
     Photos.create(
       { author_id: author.id,
         user_id: req.user.id,
+        title: req.body.title,
         link: req.body.link,
         description: req.body.description}
-        );
+        ).then((photo)=> {
+    req.body.meta.photoId = photo.id;
+    photoMetas().insert(req.body.meta);
+  });
   }).then(()=> {
     res.redirect('/');
   })
@@ -136,6 +145,7 @@ app.put('/gallery/:id', isAuthenticated, (req, res) => {
        if(req.user.id === photo.user_id){
          photo.update(
           { author_id: author.id,
+            title: req.body.title,
             link: req.body.link,
             description: req.body.description
           }

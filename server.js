@@ -1,11 +1,10 @@
 /* jshint esversion:6 */
 const express = require('express');
+const methodOverride = require('method-override');
 const bodyParser = require('body-parser');
-const exphbs = require('express-handlebars');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
-const methodOverride = require('method-override');
 const galleryRouter = require('./routes/gallery.js');
 
 const RedisStore = require('connect-redis')(session);
@@ -13,12 +12,14 @@ const saltRounds = 10;
 const bcrypt = require('bcrypt');
 
 const app = express();
+
 let db = require('./models');
 let Users = db.users;
 let Photos = db.photos;
 
 let PORT = process.env.PORT || 9000;
 
+const exphbs = require('express-handlebars');
 const hbs = exphbs.create({
   defaultLayout: 'main',
   extname: 'hbs'
@@ -49,10 +50,7 @@ passport.serializeUser((user, cb)=> {
 
 passport.deserializeUser((userId, cb)=> {
   Users.findById(userId, cb).then(user => {
-    if (user) {
       return cb(null, user);
-    }
-    return cb(null);
   }).catch(err=>{
     if(err){
       return cb(err);
@@ -82,12 +80,8 @@ passport.use(new LocalStrategy((username,password, done)=>{
 }
 ));
 
-
-
 app.listen(PORT, () => {
-    /*db.sequelize.drop();*/
   db.sequelize.sync();
-
   console.log(`Server running on ${PORT}`);
 });
 

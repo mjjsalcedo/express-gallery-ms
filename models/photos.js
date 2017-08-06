@@ -4,6 +4,7 @@ const Users = require('./users');*/
 
 module.exports = function(sequelize, DataTypes) {
   var Photo = sequelize.define("photos", {
+    title: { type: DataTypes.STRING, allowNull: false },
     link: { type: DataTypes.STRING, allowNull: false },
     description: { type: DataTypes.STRING, allowNull: false }
   },
