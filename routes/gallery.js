@@ -171,14 +171,18 @@ app.put('/gallery/:id', isAuthenticated, (req, res) => {
 });
 
 app.delete('/gallery/:id', isAuthenticated, (req, res) => {
-  let photoId = req.params.id;
+  let photoId = parseInt(req.params.id);
+
   findPhoto(req, res)
   .then(photo=>{
     if(req.user.id === photo.user_id){
-      Photos.destroy({ where: {id: photoId} })
-      .then(()=> {
+      Photos.destroy({ where: {id: photoId} });
+        console.log('photoId',photoId);
+      photoMetas().remove({ photoId: photoId })
+
+        .then(()=>{
         res.redirect('/');
-      });
+        });
     }
   });
 });
