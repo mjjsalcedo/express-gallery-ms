@@ -96,11 +96,11 @@ app.get('/gallery/:id', (req, res) => {
     });
 
     return photoMetas().findOne({ photoId: mainPhoto[0].id });
-    })
-    .then(meta => {
-      delete meta._id;
-      delete meta.photoId;
-      revisedMainPhoto.meta = meta;
+  })
+  .then(meta => {
+    delete meta._id;
+    delete meta.photoId;
+    revisedMainPhoto.meta = meta;
 
     let photosObj = {
       photo: revisedMainPhoto,
@@ -118,6 +118,7 @@ app.get('/gallery/:id/edit', (req, res) =>{
       title: photo.title,
       link: photo.link,
       description: photo.description,
+      meta: photo.meta
     };
     res.render('./templates/edit', photoObj);
   });
@@ -134,38 +135,39 @@ app.post('/gallery', isAuthenticated, (req, res) => {
         link: req.body.link,
         description: req.body.description}
         ).then((photo)=> {
-    req.body.meta.photoId = photo.id;
-    photoMetas().insert(req.body.meta);
-  });
-  }).then(()=> {
-    res.redirect('/');
-  })
-  .catch( err => {
-    console.log(err);
-  });
+          req.body.meta.photoId = photo.id;
+          photoMetas().insert(req.body.meta).
+          then(()=> {
+            res.redirect('/');
+          })
+          .catch( err => {
+            console.log(err);
+          });
+        });
+      });
 });
 
 app.put('/gallery/:id', isAuthenticated, (req, res) => {
   let photoId = req.params.id;
   findAuthor(req, res)
   .then( author => {
-      Photos.findById(photoId , {include: [{model:Users}]}).then(photo => {
-       if(req.user.id === photo.user_id){
-         photo.update(
-          { author_id: author.id,
-            title: req.body.title,
-            link: req.body.link,
-            description: req.body.description
-          }
-          );
+    Photos.findById(photoId , {include: [{model:Users}]}).then(photo => {
+     if(req.user.id === photo.user_id){
+       photo.update(
+        { author_id: author.id,
+          title: req.body.title,
+          link: req.body.link,
+          description: req.body.description
         }
-      }).then(()=>{
-      res.redirect('/');
-    })
-    .catch(err => {
-      console.log(err);
-    });
+        );
+     }
+   }).then(()=>{
+    res.redirect('/');
+  })
+   .catch(err => {
+    console.log(err);
   });
+ });
 });
 
 app.delete('/gallery/:id', isAuthenticated, (req, res) => {

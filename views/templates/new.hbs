@@ -1,11 +1,18 @@
 <h1>Upload a Photo</h1>
 
 <div class="new-photo">
-<form action="/gallery" method="POST">
-  <p><label>Title: <input type="text" name="title"></label></p>
-  <p><label>Author: <input type="text" name="author"></label></p>
-  <p><label>Photo URL: <input type="text" name="link"></label></p>
-  <p><label>Description: <input type="text" name="description"></label></p>
-  <button type="submit">Upload Photo</button>
-  </form>
-</div>
+  <form action="/gallery" method="POST">
+    <p><label>Title: <input type="text" name="title"></label></p>
+    <p><label>Author: <input type="text" name="author"></label></p>
+    <p><label>Photo URL: <input type="text" name="link"></label></p>
+    <p><label>Description: <input type="text" name="description"></label></p>
+    <div class="add_meta_field">
+      <ul id="meta_fields"></ul>
+          <button id="add_meta_field_button" type="button" >Add Meta Data</button>
+        </div>
+        <div class="upload_form_button">
+          <input class="db_update" type="submit" value="Upload">
+        </div>
+      </form>
+  <script src="/scripts/metaFields.js"></script>
+    </div>
